@@ -10,6 +10,10 @@ function TeachMeTopic() {
   const [teachingContent, setTeachingContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [userResponse, setUserResponse] = useState('');
+  // Add state for chat messages
+  const [chatMessages, setChatMessages] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   // Fetch all subjects when component mounts
   useEffect(() => {
@@ -94,11 +98,60 @@ function TeachMeTopic() {
     }
   };
 
-  const handleSendResponse = () => {
-    if (userResponse.trim()) {
-      // Handle user response - can be implemented to send to backend
-      console.log("User response:", userResponse);
-      setUserResponse('');
+  // const handleSendResponse = () => {
+  //   if (userResponse.trim()) {
+  //     // Handle user response - can be implemented to send to backend
+  //     console.log("User response:", userResponse);
+  //     setUserResponse('');
+  //   }
+  // };
+  const handleSendResponse = async () => {
+    if (userResponse.trim() && !isSubmitting) {
+      const userQuestion = userResponse.trim();
+      setUserResponse(''); // Clear input field
+      setIsSubmitting(true);
+      
+      // Add user message to chat
+      setChatMessages(prevMessages => [
+        ...prevMessages, 
+        { 
+          sender: 'user', 
+          content: userQuestion,
+          timestamp: new Date()
+        }
+      ]);
+      
+      try {
+        // Call your backend API to get the answer
+        const response = await axios.post('http://localhost:8000/api/teach/question', {
+          subject: selectedSubject,
+          topic: selectedTopic,
+          question: userQuestion
+        });
+        
+        // Add AI response to chat
+        setChatMessages(prevMessages => [
+          ...prevMessages, 
+          { 
+            sender: 'ai', 
+            content: response.data.answer,
+            timestamp: new Date()
+          }
+        ]);
+      } catch (error) {
+        console.error('Error getting AI response:', error);
+        // Add error message to chat
+        setChatMessages(prevMessages => [
+          ...prevMessages, 
+          { 
+            sender: 'ai', 
+            content: 'Sorry, I couldn\'t process your question. Please try again.',
+            timestamp: new Date()
+          }
+        ]);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -169,6 +222,35 @@ function TeachMeTopic() {
           )}
         </div>
         
+        {/* newly added */}
+        {/* Chat messages section */}
+        {teachingContent && (
+          <div className="chat-container" id="chat-container">
+            {chatMessages.map((message, index) => (
+              <div 
+                key={index}
+                className={`chat-message ${message.sender === 'user' ? 'user-message' : 'ai-message'}`}
+              >
+                <div className="message-content">
+                  {message.content}
+                </div>
+                <div className="message-timestamp">
+                  {message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                </div>
+              </div>
+            ))}
+            {isSubmitting && (
+              <div className="chat-message ai-message">
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="response-section">
           <div className="response-input">
             <input

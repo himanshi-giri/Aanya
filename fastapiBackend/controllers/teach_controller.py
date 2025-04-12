@@ -31,7 +31,7 @@ async def teach_topic(data):
     if not subject or not topic:
         raise HTTPException(status_code=400, detail="Subject and topic are required")
 
-    prompt = f"""
+    prompt1 = f"""
 You are Aanya, an expert AI tutor specialized in teaching ${subject}.
     Please provide a comprehensive lesson on ${topic} within ${subject}. Your response should be tailored for a student in middle or high school.
     Structure your response with the following sections:
@@ -48,7 +48,7 @@ You are Aanya, an expert AI tutor specialized in teaching ${subject}.
 
 """
 
-    content = await generate_gemini_response(prompt)
+    content = await generate_gemini_response(prompt1)
     return {"subject": subject, "topic": topic, "content": content}
 
 async def answer_question(data):
@@ -58,12 +58,18 @@ async def answer_question(data):
     if not subject or not topic or not question:
         raise HTTPException(status_code=400, detail="Subject, topic, and question are required")
 
-    prompt = f"""
+    prompt2 = f"""
 As Aanya, an expert AI tutor specializing in {subject}, please answer the following question about {topic}:
 
 "{question}"
 
-Provide a clear, concise, and accurate answer. Include examples if appropriate.
+Provide a clear and concise answer using plain text only. Structure your response with:
+1. A direct answer to the question
+2. A simple explanation with key points
+3. If relevant, 1-2 examples or analogies to illustrate the concept
+
+Keep your response conversational, friendly, and suitable for a Class 10 student reading from a NCERT textbook. Do not use any formatting symbols like asterisks, bullet points, or Markdown. Use plain line breaks and paragraphs instead.
+
 """
-    answer = await generate_gemini_response(prompt)
+    answer = await generate_gemini_response(prompt2)
     return {"question": question, "answer": answer}
