@@ -1,5 +1,8 @@
 from fastapi import HTTPException
 from utils.gemini_helper import generate_gemini_response
+from dotenv import load_dotenv
+
+load_dotenv()
 
 subjects_data = [
     {"id": 1, "name": "Mathematics"},
